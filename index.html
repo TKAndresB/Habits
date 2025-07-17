@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Rastreador de Hábitos Diario</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .container {
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            max-width: 700px; /* Adjusted max-width for simpler layout */
+            width: 100%;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 10px; /* Reduced margin */
+            font-size: 2.2em;
+            font-weight: 700;
+        }
+
+        .current-date-display {
+            text-align: center;
+            font-size: 1.2em;
+            color: #555;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            color: #34495e;
+            margin-bottom: 15px;
+            font-size: 1.6em;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 8px;
+        }
+
+        .habits-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .habit-item {
+            background-color: #f9f9f9;
+            border: 1px solid #e0e0e0;
+            border-left: 5px solid #4CAF50; /* Accent color */
+            border-radius: 8px;
+            padding: 15px 20px;
+            display: flex;
+            align-items: flex-start; /* Align items to start for better text flow */
+            gap: 15px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            cursor: pointer; /* Indicate clickable area */
+        }
+
+        .habit-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .habit-item input[type="checkbox"] {
+            min-width: 24px; /* Ensure checkbox is visible */
+            min-height: 24px;
+            transform: scale(1.5); /* Make checkbox larger */
+            margin-top: 3px; /* Adjust vertical alignment */
+            cursor: pointer;
+            accent-color: #4CAF50; /* Green accent for checkbox */
+        }
+
+        .habit-content {
+            flex-grow: 1; /* Allow content to take available space */
+        }
+
+        .habit-content h3 {
+            margin: 0;
+            color: #2c3e50;
+            font-size: 1.2em;
+            font-weight: 600;
+            line-height: 1.3;
+        }
+
+        .habit-content p {
+            margin: 5px 0 0;
+            color: #555;
+            font-size: 0.95em;
+            line-height: 1.4;
+        }
+
+        .calendar-section {
+            margin-top: 20px;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            background-color: #e9ecef;
+            padding: 10px 20px;
+            border-radius: 8px;
+        }
+
+        .calendar-header h2 {
+            margin: 0;
+            color: #2c3e50;
+            font-size: 1.8em;
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .calendar-header button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.2s ease;
+        }
+
+        .calendar-header button:hover {
+            background-color: #0056b3;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            text-align: center;
+        }
+
+        .day-name, .day {
+            padding: 12px 8px;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 0.95em;
+        }
+
+        .day-name {
+            background-color: #f0f0f0;
+            color: #666;
+            font-weight: 600;
+        }
+
+        .day {
+            background-color: #fdfdfd;
+            border: 1px solid #e0e0e0;
+            cursor: pointer;
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+            position: relative;
+            min-height: 50px; /* Ensure consistent height */
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            padding-top: 8px;
+        }
+
+        .day:hover {
+            background-color: #e6f7ff;
+            border-color: #99d9ff;
+        }
+
+        .day.empty {
+            background-color: #f5f5f5;
+            cursor: default;
+            border: 1px dashed #e0e0e0;
+        }
+
+        .day.empty:hover {
+            background-color: #f5f5f5;
+            border-color: #e0e0e0;
+        }
+
+        .day.current-day {
+            border: 2px solid #007bff;
+            background-color: #e6f7ff;
+            font-weight: 700;
+            color: #007bff;
+        }
+
+        .day .day-number {
+            font-size: 1.2em;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .day .completion-mark {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #28a745; /* Green for completed */
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            line-height: 1;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1000; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0, 0, 0, 0.6); /* Black w/ opacity */
+            backdrop-filter: blur(5px); /* Blur background */
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1.5em;
+            color: #2c3e50;
+        }
+
+        .close-button {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+
+        .close-button:hover,
+        .close-button:focus {
+            color: #333;
+        }
+
+        .modal-body {
+            margin-bottom: 20px;
+        }
+
+        .modal-body .habit-checkbox-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+            color: #444;
+        }
+
+        .modal-body .habit-checkbox-item input[type="checkbox"] {
+            margin-right: 12px;
+            transform: scale(1.3);
+            cursor: pointer;
+        }
+
+        .modal-footer {
+            text-align: right;
+            border-top: 1px solid #eee;
+            padding-top: 15px;
+        }
+
+        .modal-footer button {
+            background-color: #28a745; /* Green for save */
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1.1em;
+            transition: background-color 0.2s ease;
+        }
+
+        .modal-footer button:hover {
+            background-color: #218838;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+                margin: 10px;
+            }
+
+            h1 {
+                font-size: 1.8em;
+            }
+
+            h2 {
+                font-size: 1.4em;
+            }
+
+            .habit-item {
+                padding: 12px 15px;
+                gap: 10px;
+            }
+
+            .habit-item input[type="checkbox"] {
+                min-width: 20px;
+                min-height: 20px;
+                transform: scale(1.2);
+            }
+
+            .habit-content h3 {
+                font-size: 1.1em;
+            }
+
+            .habit-content p {
+                font-size: 0.9em;
+            }
+
+            .calendar-grid {
+                gap: 5px;
+            }
+
+            .day-name, .day {
+                padding: 8px 5px;
+                font-size: 0.85em;
+            }
+
+            .day .day-number {
+                font-size: 1em;
+            }
+
+            .day .completion-mark {
+                font-size: 1.2em;
+                bottom: 3px;
+                right: 3px;
+            }
+
+            .modal-content {
+                padding: 20px;
+            }
+
+            .modal-header h3 {
+                font-size: 1.3em;
+            }
+
+            .modal-body .habit-checkbox-item {
+                font-size: 1em;
+            }
+
+            .modal-footer button {
+                padding: 10px 20px;
+                font-size: 1em;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px;
+            }
+
+            h1 {
+                font-size: 1.5em;
+            }
+
+            .current-date-display {
+                font-size: 1em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Mi Rastreador de Hábitos Diario</h1>
+        <div class="current-date-display" id="current-date-display"></div>
+
+        <section class="habits-section">
+            <h2>Hábitos para Hoy</h2>
+            <div class="habits-list" id="habits-list">
+                <!-- Habits with checkboxes will be dynamically loaded here -->
+            </div>
+        </section>
+
+        <section class="calendar-section">
+            <div class="calendar-header">
+                <button id="prevMonth">&lt; Mes Anterior</button>
+                <h2 id="currentMonthYear"></h2>
+                <button id="nextMonth">Mes Siguiente &gt;</button>
+            </div>
+            <div class="calendar-grid" id="calendar-grid">
+                <div class="day-name">Dom</div>
+                <div class="day-name">Lun</div>
+                <div class="day-name">Mar</div>
+                <div class="day-name">Mié</div>
+                <div class="day-name">Jue</div>
+                <div class="day-name">Vie</div>
+                <div class="day-name">Sáb</div>
+                <!-- Days will be dynamically loaded here -->
+            </div>
+        </section>
+    </div>
+
+    <!-- Habit Tracking Modal -->
+    <div id="habitModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalDate"></h3>
+                <span class="close-button" id="closeModal">&times;</span>
+            </div>
+            <div class="modal-body" id="modalHabitCheckboxes">
+                <!-- Checkboxes for habits will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button id="saveHabits">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const habits = [
+            { id: 'planificar-dia', title: '📅 Planifica tu día en 3 pasos', description: 'Qué vas a crear, Qué vas a mejorar, Qué vas a cuidar (tu descanso, salud o energía)' },
+            { id: 'trabajar-arte', title: '🎨 Trabaja al menos 30 minutos en tu arte.', description: 'No importa si es boceto, teoría, color o brainstorming: crea algo todos los días.' },
+            { id: 'aprender-nuevo', title: '🧠 Aprende algo nuevo cada día.', description: 'Puede ser de dibujo, anatomía, color, narrativa, emociones, o incluso algo personal. Video corto, libro, podcast, artículo, conversación.' },
+            { id: 'reflexionar-dia', title: '📝 Reflexiona al final del día (escrito o mental):', description: '¿Qué lograste hoy? ¿Qué podrías mejorar mañana? ¿Cómo te sentiste con tu proceso?' },
+            { id: 'cuidar-uno-mismo', title: '🧘 Cuida de ti mismo conscientemente.', description: 'Al menos una acción diaria: Dormir bien, Comer conscientemente, Estirar tu cuerpo, Respirar profundo, Alejarte del celular un rato, Tomar agua suficiente.' },
+            { id: 'interactuar-artista', title: '🤝 Interactúa positivamente con otro artista.', description: 'Comenta, apoya, pregunta o comparte. La comunidad también se fortalece con hábitos.' },
+            { id: 'limitar-distracciones', title: '📵 Limita las distracciones.', description: 'Establece un bloque libre de redes mientras creas. (Empieza con 25 minutos).' }
+        ];
+
+        const habitsListEl = document.getElementById('habits-list');
+        const currentDateDisplayEl = document.getElementById('current-date-display');
+        const currentMonthYearEl = document.getElementById('currentMonthYear');
+        const calendarGridEl = document.getElementById('calendar-grid');
+        const prevMonthBtn = document.getElementById('prevMonth');
+        const nextMonthBtn = document.getElementById('nextMonth');
+        const habitModal = document.getElementById('habitModal');
+        const modalDateEl = document.getElementById('modalDate');
+        const modalHabitCheckboxesEl = document.getElementById('modalHabitCheckboxes');
+        const closeModalBtn = document.getElementById('closeModal');
+        const saveHabitsBtn = document.getElementById('saveHabits');
+
+        // Load habit completions from localStorage
+        // Structure: { 'YYYY-MM-DD': { 'habitId1': true, 'habitId2': false, ... } }
+        let habitCompletions = JSON.parse(localStorage.getItem('habitCompletions')) || {};
+
+        // --- Helper Functions ---
+        function getTodayDateString() {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function getFormattedDate(dateString) {
+            const date = new Date(dateString + 'T00:00:00'); // Add T00:00:00 to avoid timezone issues
+            return date.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        }
+
+        function saveCompletions() {
+            localStorage.setItem('habitCompletions', JSON.stringify(habitCompletions));
+        }
+
+        function formatDate(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function getMonthName(monthIndex) {
+            const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+            return monthNames[monthIndex];
+        }
+
+        function hasAnyHabitCompleted(dateString) {
+            const dayCompletions = habitCompletions[dateString];
+            if (!dayCompletions) return false;
+            return Object.values(dayCompletions).some(completed => completed);
+        }
+
+        function openModal(dateString) {
+            const selectedDate = dateString;
+            modalDateEl.textContent = new Date(dateString + 'T00:00:00').toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            modalHabitCheckboxesEl.innerHTML = '';
+
+            const dayCompletions = habitCompletions[dateString] || {};
+
+            habits.forEach(habit => {
+                const checkboxItem = document.createElement('div');
+                checkboxItem.classList.add('habit-checkbox-item');
+                checkboxItem.innerHTML = `
+                    <input type="checkbox" id="habit-${habit.id}" data-habit-id="${habit.id}" ${dayCompletions[habit.id] ? 'checked' : ''}>
+                    <label for="habit-${habit.id}">${habit.title}</label>
+                `;
+                modalHabitCheckboxesEl.appendChild(checkboxItem);
+            });
+
+            habitModal.style.display = 'flex'; // Use flex to center
+        }
+
+        function closeModal() {
+            habitModal.style.display = 'none';
+        }
+
+        function saveHabitCompletions() {
+            const selectedDate = modalDateEl.dataset.date;
+            if (!selectedDate) return;
+
+            const checkboxes = modalHabitCheckboxesEl.querySelectorAll('input[type="checkbox"]');
+            const currentDayCompletions = {};
+
+            checkboxes.forEach(checkbox => {
+                const habitId = checkbox.dataset.habitId;
+                currentDayCompletions[habitId] = checkbox.checked;
+            });
+
+            // Clean up if no habits are checked for the day
+            const anyChecked = Object.values(currentDayCompletions).some(checked => checked);
+            if (anyChecked) {
+                habitCompletions[selectedDate] = currentDayCompletions;
+            } else {
+                delete habitCompletions[selectedDate]; // Remove entry if nothing is checked
+            }
+
+            localStorage.setItem('habitCompletions', JSON.stringify(habitCompletions));
+            closeModal();
+        }
+
+        function renderCalendar() {
+            calendarGridEl.innerHTML = `
+                <div class="day-name">Dom</div>
+                <div class="day-name">Lun</div>
+                <div class="day-name">Mar</div>
+                <div class="day-name">Mié</div>
+                <div class="day-name">Jue</div>
+                <div class="day-name">Vie</div>
+                <div class="day-name">Sáb</div>
+            `; // Reset grid, keep day names
+
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = today.getMonth(); // 0-indexed
+
+            currentMonthYearEl.textContent = `${getMonthName(month)} ${year}`;
+
+            // Get the first day of the month (0 = Sunday, 1 = Monday, etc.)
+            const firstDayOfMonth = new Date(year, month, 1).getDay();
+            // Get the number of days in the current month
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            // Add empty divs for days before the 1st of the month
+            for (let i = 0; i < firstDayOfMonth; i++) {
+                const emptyDay = document.createElement('div');
+                emptyDay.classList.add('day', 'empty');
+                calendarGridEl.appendChild(emptyDay);
+            }
+
+            // Add days of the month
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayEl = document.createElement('div');
+                dayEl.classList.add('day');
+                const fullDate = new Date(year, month, day);
+                const dateString = formatDate(fullDate);
+                dayEl.dataset.date = dateString;
+
+                dayEl.innerHTML = `<span class="day-number">${day}</span>`;
+
+                // Mark current day
+                if (fullDate.getDate() === today.getDate() &&
+                    fullDate.getMonth() === today.getMonth() &&
+                    fullDate.getFullYear() === today.getFullYear()) {
+                    dayEl.classList.add('current-day');
+                }
+
+                // Add 'X' if any habit was completed for this day
+                if (hasAnyHabitCompleted(dateString)) {
+                    const mark = document.createElement('span');
+                    mark.classList.add('completion-mark');
+                    mark.textContent = 'X';
+                    dayEl.appendChild(mark);
+                }
+
+                dayEl.addEventListener('click', () => openModal(dateString));
+                calendarGridEl.appendChild(dayEl);
+            }
+        }
+
+        // --- Render Functions ---
+        function renderHabitsList() {
+            habitsListEl.innerHTML = '';
+            const todayDate = getTodayDateString();
+            currentDateDisplayEl.textContent = `Hoy es ${getFormattedDate(todayDate)}`;
+
+            // Initialize today's completions if not present
+            if (!habitCompletions[todayDate]) {
+                habitCompletions[todayDate] = {};
+            }
+
+            habits.forEach(habit => {
+                const isCompleted = habitCompletions[todayDate][habit.id] || false;
+
+                const habitItem = document.createElement('label'); // Use label for better accessibility
+                habitItem.classList.add('habit-item');
+                habitItem.innerHTML = `
+                    <input type="checkbox" data-habit-id="${habit.id}" ${isCompleted ? 'checked' : ''}>
+                    <div class="habit-content">
+                        <h3>${habit.title}</h3>
+                        <p>${habit.description}</p>
+                    </div>
+                `;
+
+                const checkbox = habitItem.querySelector('input[type="checkbox"]');
+                checkbox.addEventListener('change', (event) => {
+                    const habitId = event.target.dataset.habitId;
+                    const isChecked = event.target.checked;
+                    habitCompletions[todayDate][habitId] = isChecked;
+                    saveCompletions();
+                });
+
+                habitsListEl.appendChild(habitItem);
+            });
+        }
+
+        // --- Event Listeners ---
+        prevMonthBtn.addEventListener('click', () => {
+            currentDate.setMonth(currentDate.getMonth() - 1);
+            renderCalendar();
+        });
+
+        nextMonthBtn.addEventListener('click', () => {
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            renderCalendar();
+        });
+
+        closeModalBtn.addEventListener('click', closeModal);
+        saveHabitsBtn.addEventListener('click', saveHabitCompletions);
+
+        // Close modal if clicking outside content
+        habitModal.addEventListener('click', (event) => {
+            if (event.target === habitModal) {
+                closeModal();
+            }
+        });
+
+        // --- Initial Render ---
+        renderHabitsList();
+        renderCalendar();
+    </script>
+</body>
+</html>
